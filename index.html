@@ -80,6 +80,43 @@
         .hidden { display: none; }
         .highlight { font-weight: 600; color: #e03e3e; }
         .green { font-weight: 600; color: #0f7b6c; }
+        
+        /* R:R Targets Grid Styling */
+        .rr-title {
+            font-size: 11px;
+            color: rgba(55, 53, 47, 0.5);
+            letter-spacing: 1px;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .rr-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+        }
+        .rr-card {
+            background-color: #131722; /* Dark theme from image */
+            border-radius: 4px;
+            padding: 8px 4px;
+            text-align: center;
+            font-family: monospace;
+        }
+        .rr-ratio {
+            color: #787b86;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+        .rr-price {
+            color: #2ebd85; /* Bright green */
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .rr-profit {
+            color: #2ebd85;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
@@ -92,7 +129,7 @@
 
     <div id="build-mode">
         <div class="input-group">
-            <label>ACCOUNT EQUITY (USD)</label>
+            <label>Capital ($)</label>
             <input type="number" id="b-cap" oninput="calcBuild()">
         </div>
         <div class="input-group">
@@ -100,7 +137,7 @@
             <input type="number" id="b-price" oninput="calcBuild()">
         </div>
         <div class="input-group">
-            <label>Target Positon (%)</label>
+            <label>Target Pos (%)</label>
             <input type="number" id="b-pct" oninput="calcBuild()" placeholder="e.g. 10">
         </div>
         <div class="result-box" id="b-result">
@@ -110,11 +147,11 @@
 
     <div id="swing-mode" class="hidden">
         <div class="input-group">
-            <label>ACCOUNT EQUITY (USD)</label>
+            <label>Capital ($)</label>
             <input type="number" id="s-cap" oninput="calcSwing()">
         </div>
         <div class="input-group">
-            <label>RISK PER TRADE (%)</label>
+            <label>Max Risk (%)</label>
             <input type="number" id="s-risk" oninput="calcSwing()" value="0.3" step="0.1">
         </div>
         <div class="input-group">
@@ -125,12 +162,8 @@
             <label>Stop Loss ($)</label>
             <input type="number" id="s-stop" oninput="calcSwing()">
         </div>
-        <div class="input-group">
-            <label>Target Price ($)</label>
-            <input type="number" id="s-target" oninput="calcSwing()">
-        </div>
         <div class="result-box" id="s-result">
-            Enter data to get position size & R:R...
+            Enter data to get position size & targets...
         </div>
     </div>
 </div>
@@ -177,7 +210,6 @@
         let riskPct = parseFloat(document.getElementById('s-risk').value);
         let price = parseFloat(document.getElementById('s-price').value);
         let stop = parseFloat(document.getElementById('s-stop').value);
-        let target = parseFloat(document.getElementById('s-target').value);
 
         if (cap && riskPct && price && stop) {
             let maxRisk = cap * (riskPct / 100); 
@@ -194,15 +226,29 @@
             let html = `Max Risk: $${maxRisk.toFixed(2)} (${riskPct}%)<br>`;
             html += `Buy: <span class="green">${shares}</span> shares ($${totalCost.toFixed(2)})<br>`;
             
-            if (target > price) {
-                let reward = target - price;
-                let rr = reward / riskPerShare;
-                html += `R:R = <b>1 : ${rr.toFixed(2)}</b>`;
-            }
+            // R:R Targets Generation
+            html += `<div class="rr-title">R:R Targets</div>`;
+            html += `<div class="rr-grid">`;
+            
+            const ratios = [1, 1.5, 2, 3, 4, 5];
+            ratios.forEach(r => {
+                let targetPrice = price + (riskPerShare * r);
+                let profit = maxRisk * r; // Actual projected profit based on shares
+                
+                html += `
+                    <div class="rr-card">
+                        <div class="rr-ratio">${r}:1 R</div>
+                        <div class="rr-price">$${targetPrice.toFixed(2)}</div>
+                        <div class="rr-profit">+$${profit.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
             
             document.getElementById('s-result').innerHTML = html;
         } else {
-            document.getElementById('s-result').innerHTML = "Enter data to get position size & R:R...";
+            document.getElementById('s-result').innerHTML = "Enter data to get position size & targets...";
         }
     }
 </script>
