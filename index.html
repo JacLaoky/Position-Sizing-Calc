@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -86,47 +86,51 @@
 
 <div class="container">
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('build')">建仓 (1:2:4)</div>
-        <div class="tab" onclick="switchTab('swing')">Swing (0.3%)</div>
+        <div class="tab active" onclick="switchTab('build')">Scale In (1:2:4)</div>
+        <div class="tab" onclick="switchTab('swing')">Swing Trade</div>
     </div>
 
     <div id="build-mode">
         <div class="input-group">
-            <label>本金 ($)</label>
+            <label>ACCOUNT EQUITY (USD)</label>
             <input type="number" id="b-cap" oninput="calcBuild()">
         </div>
         <div class="input-group">
-            <label>股价 ($)</label>
+            <label>Entry Price ($)</label>
             <input type="number" id="b-price" oninput="calcBuild()">
         </div>
         <div class="input-group">
-            <label>预计仓位 (%)</label>
+            <label>Target Positon (%)</label>
             <input type="number" id="b-pct" oninput="calcBuild()" placeholder="e.g. 10">
         </div>
         <div class="result-box" id="b-result">
-            输入数据获取分批建仓计划...
+            Enter data to get scale-in plan...
         </div>
     </div>
 
     <div id="swing-mode" class="hidden">
         <div class="input-group">
-            <label>本金 ($)</label>
+            <label>ACCOUNT EQUITY (USD)</label>
             <input type="number" id="s-cap" oninput="calcSwing()">
         </div>
         <div class="input-group">
-            <label>买入价 ($)</label>
+            <label>RISK PER TRADE (%)</label>
+            <input type="number" id="s-risk" oninput="calcSwing()" value="0.3" step="0.1">
+        </div>
+        <div class="input-group">
+            <label>Entry Price ($)</label>
             <input type="number" id="s-price" oninput="calcSwing()">
         </div>
         <div class="input-group">
-            <label>止损点 ($)</label>
+            <label>Stop Loss ($)</label>
             <input type="number" id="s-stop" oninput="calcSwing()">
         </div>
         <div class="input-group">
-            <label>目标价 ($)</label>
+            <label>Target Price ($)</label>
             <input type="number" id="s-target" oninput="calcSwing()">
         </div>
         <div class="result-box" id="s-result">
-            输入数据获取买入股数及盈亏比...
+            Enter data to get position size & R:R...
         </div>
     </div>
 </div>
@@ -158,43 +162,47 @@
             let b3 = Math.floor(totalShares * (4/7));
             
             document.getElementById('b-result').innerHTML = `
-                总计: <b>${totalShares} 股</b> ($${(totalShares*price).toFixed(2)})<br>
-                1️⃣ 第一笔 (1/7): <span class="green">${b1}</span> 股<br>
-                2️⃣ 第二笔 (2/7): <span class="green">${b2}</span> 股<br>
-                3️⃣ 第三笔 (4/7): <span class="green">${b3}</span> 股
+                Total: <b>${totalShares} shares</b> ($${(totalShares*price).toFixed(2)})<br>
+                1️⃣ Batch 1 (1/7): <span class="green">${b1}</span> shares<br>
+                2️⃣ Batch 2 (2/7): <span class="green">${b2}</span> shares<br>
+                3️⃣ Batch 3 (4/7): <span class="green">${b3}</span> shares
             `;
+        } else {
+            document.getElementById('b-result').innerHTML = "Enter data to get scale-in plan...";
         }
     }
 
     function calcSwing() {
         let cap = parseFloat(document.getElementById('s-cap').value);
+        let riskPct = parseFloat(document.getElementById('s-risk').value);
         let price = parseFloat(document.getElementById('s-price').value);
         let stop = parseFloat(document.getElementById('s-stop').value);
         let target = parseFloat(document.getElementById('s-target').value);
 
-        if (cap && price && stop) {
-            // 严格执行 0.3% 风控纪律
-            let maxRisk = cap * 0.003; 
+        if (cap && riskPct && price && stop) {
+            let maxRisk = cap * (riskPct / 100); 
             let riskPerShare = price - stop;
             
             if (riskPerShare <= 0) {
-                document.getElementById('s-result').innerHTML = "<span class='highlight'>止损价必须低于买入价！</span>";
+                document.getElementById('s-result').innerHTML = "<span class='highlight'>Stop Loss must be below Entry Price!</span>";
                 return;
             }
 
             let shares = Math.floor(maxRisk / riskPerShare);
             let totalCost = shares * price;
             
-            let html = `最大亏损控制在 $${maxRisk.toFixed(2)} (0.3%)<br>`;
-            html += `建议买入: <span class="green">${shares}</span> 股 ($${totalCost.toFixed(2)})<br>`;
+            let html = `Max Risk: $${maxRisk.toFixed(2)} (${riskPct}%)<br>`;
+            html += `Buy: <span class="green">${shares}</span> shares ($${totalCost.toFixed(2)})<br>`;
             
             if (target > price) {
                 let reward = target - price;
                 let rr = reward / riskPerShare;
-                html += `盈亏比 (R:R): <b>1 : ${rr.toFixed(1)}</b>`;
+                html += `R:R = <b>1 : ${rr.toFixed(2)}</b>`;
             }
             
             document.getElementById('s-result').innerHTML = html;
+        } else {
+            document.getElementById('s-result').innerHTML = "Enter data to get position size & R:R...";
         }
     }
 </script>
