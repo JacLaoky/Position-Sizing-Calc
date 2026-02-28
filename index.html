@@ -21,18 +21,18 @@
             --btn-active-bg: #ffffff;
         }
 
-        /* Dark Mode Variables - 专门适配 Notion 暗色 Callout 模块 */
+        /* Dark Mode Variables - 完美匹配 Notion 原生夜间黑 */
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-color: #202020; /* 调亮基础背景，匹配上方卡片 */
-                --text-color: rgba(255, 255, 255, 0.9);
-                --text-muted: rgba(255, 255, 255, 0.5);
-                --gray-bg: #2b2b2b; /* 调亮输入框和结果框背景，增加层次感 */
-                --border-color: rgba(255, 255, 255, 0.1);
+                --bg-color: #191919; /* Notion 纯净暗黑背景 */
+                --text-color: rgba(255, 255, 255, 0.81);
+                --text-muted: rgba(255, 255, 255, 0.45);
+                --gray-bg: #202020; /* 次级背景色，用于输入框和结果框 */
+                --border-color: rgba(255, 255, 255, 0.13); /* 降低边框透明度，更柔和 */
                 --accent: #2eaadc;
                 --green: #2ebd85; 
                 --red: #ff7369;   
-                --btn-active-bg: #3b3b3b; /* 活跃按钮更亮一点 */
+                --btn-active-bg: #2c2c2c; /* 活跃按钮的颜色 */
             }
         }
 
@@ -92,7 +92,7 @@
             padding: 4px;
             margin-bottom: 18px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            border: 1px solid var(--border-color); /* 增加极细边框增强立体感 */
+            border: 1px solid var(--border-color); 
         }
         .toggle-btn {
             flex: 1;
@@ -146,7 +146,7 @@
             font-size: 15px;
             line-height: 1.6;
             transition: background 0.3s;
-            border: 1px solid var(--border-color); /* 增加细边框 */
+            border: 1px solid var(--border-color); 
         }
         .hidden { display: none; }
         .highlight { font-weight: 600; color: var(--red); }
