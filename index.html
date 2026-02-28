@@ -5,13 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Calculator</title>
     <style>
+        /* 默认：Light Mode (Notion 原生配色) */
         :root {
             --bg-color: #ffffff;
             --text-color: #37352f;
+            --text-muted: rgba(55, 53, 47, 0.65);
             --gray-bg: #f7f6f3;
             --border-color: rgba(55, 53, 47, 0.16);
             --accent: #2eaadc;
+            --green: #0f7b6c;
+            --red: #e03e3e;
+            --btn-active-bg: #ffffff;
         }
+
+        /* 覆盖：Dark Mode (Notion 原生夜间配色) */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg-color: #191919;
@@ -20,18 +27,19 @@
                 --gray-bg: #202020;
                 --border-color: rgba(255, 255, 255, 0.13);
                 --accent: #2eaadc;
-                --green: #2ebd85;
-                --red: #ff7369;
+                --green: #2ebd85; /* 夜间模式下使用更亮的绿色以保证对比度 */
+                --red: #ff7369;   /* 夜间模式下使用更亮的红色 */
                 --btn-active-bg: #2f2f2f;
             }
         }
+
         * {
             box-sizing: border-box;
         }
         body {
             font-family: Lyon-Text, Georgia, ui-serif, Cambria, "Times New Roman", Times, serif;
             color: var(--text-color);
-            background-color: transparent;
+            background-color: transparent; /* 保持透明以融入 Notion 背景 */
             margin: 0;
             padding: 2px;
             font-size: 14px;
@@ -43,6 +51,7 @@
             border-radius: 6px;
             padding: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: background 0.3s, border-color 0.3s; /* 添加平滑过渡动画 */
         }
         .tabs {
             display: flex;
@@ -54,9 +63,10 @@
             padding: 6px 16px;
             cursor: pointer;
             border-bottom: 2px solid transparent;
-            color: rgba(55, 53, 47, 0.6);
+            color: var(--text-muted);
             font-weight: 500;
             font-size: 15px;
+            transition: color 0.2s;
         }
         .tab.active {
             border-bottom: 2px solid var(--text-color);
@@ -78,12 +88,12 @@
             padding: 6px 0;
             font-size: 13px;
             cursor: pointer;
-            color: rgba(55, 53, 47, 0.65);
+            color: var(--text-muted);
             border-radius: 4px;
             transition: all 0.2s ease;
         }
         .toggle-btn.active {
-            background: #fff;
+            background: var(--btn-active-bg);
             color: var(--text-color);
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             font-weight: 600;
@@ -96,7 +106,7 @@
             align-items: center;
         }
         .input-group label {
-            color: rgba(55, 53, 47, 0.65);
+            color: var(--text-muted);
             font-size: 15px;
         }
         input {
@@ -109,12 +119,12 @@
             color: var(--text-color);
             text-align: right;
             outline: none;
-            transition: border 0.2s;
+            transition: border 0.2s, background 0.3s;
             font-size: 15px;
         }
         input:focus {
             border: 1px solid var(--accent);
-            background: #fff;
+            background: var(--btn-active-bg);
         }
         .result-box {
             margin-top: 20px;
@@ -123,16 +133,17 @@
             border-radius: 4px;
             font-size: 15px;
             line-height: 1.6;
+            transition: background 0.3s;
         }
         .hidden { display: none; }
-        .highlight { font-weight: 600; color: #e03e3e; }
-        .green { font-weight: 600; color: #0f7b6c; }
-        .red { font-weight: 600; color: #e03e3e; }
+        .highlight { font-weight: 600; color: var(--red); }
+        .green { font-weight: 600; color: var(--green); }
+        .red { font-weight: 600; color: var(--red); }
         
         /* R:R Targets Grid Styling */
         .rr-title {
             font-size: 13px;
-            color: rgba(55, 53, 47, 0.65);
+            color: var(--text-muted);
             margin-top: 20px;
             margin-bottom: 12px;
             font-weight: 600;
@@ -155,7 +166,7 @@
             text-align: center;
         }
         .rr-ratio {
-            color: rgba(55, 53, 47, 0.65);
+            color: var(--text-muted);
             font-size: 13px;
             margin-bottom: 6px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -167,7 +178,7 @@
             margin-bottom: 4px;
         }
         .rr-profit {
-            color: #0f7b6c;
+            color: var(--green);
             font-size: 13px;
         }
     </style>
@@ -227,7 +238,7 @@
 </div>
 
 <script>
-    let swingDirection = 'long'; // Default to Long
+    let swingDirection = 'long'; 
 
     function switchTab(mode) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -248,7 +259,7 @@
         document.getElementById('btn-long').classList.remove('active');
         document.getElementById('btn-short').classList.remove('active');
         document.getElementById(`btn-${dir}`).classList.add('active');
-        calcSwing(); // Re-calculate automatically on switch
+        calcSwing(); 
     }
 
     function calcBuild() {
@@ -281,7 +292,6 @@
 
         if (cap && riskPct && price && stop) {
             let maxRisk = cap * (riskPct / 100); 
-            
             let riskPerShare = swingDirection === 'long' ? (price - stop) : (stop - price);
             
             if (riskPerShare <= 0) {
@@ -302,7 +312,6 @@
             let html = `Max Risk: $${maxRisk.toFixed(2)} (${riskPct}%)<br>`;
             html += `${actionText} ($${totalCost.toFixed(2)})<br>`;
             
-            // R:R Targets Generation
             html += `<div class="rr-title">Take Profit Targets</div>`;
             html += `<div class="rr-grid">`;
             
