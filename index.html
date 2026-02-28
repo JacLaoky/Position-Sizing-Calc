@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Calculator</title>
     <style>
-        /* 默认：Light Mode (Notion 原生配色) */
+        /* 启用浏览器的原生深色/浅色自适应，修复 iframe 白边问题 */
         :root {
+            color-scheme: light dark;
+            
+            /* Light Mode Variables */
             --bg-color: #ffffff;
             --text-color: #37352f;
             --text-muted: rgba(55, 53, 47, 0.65);
@@ -18,32 +21,39 @@
             --btn-active-bg: #ffffff;
         }
 
-        /* 覆盖：Dark Mode (Notion 原生夜间配色) */
+        /* Dark Mode Variables - 专门适配 Notion 暗色 Callout 模块 */
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-color: #191919;
-                --text-color: rgba(255, 255, 255, 0.81);
-                --text-muted: rgba(255, 255, 255, 0.45);
-                --gray-bg: #202020;
-                --border-color: rgba(255, 255, 255, 0.13);
+                --bg-color: #202020; /* 调亮基础背景，匹配上方卡片 */
+                --text-color: rgba(255, 255, 255, 0.9);
+                --text-muted: rgba(255, 255, 255, 0.5);
+                --gray-bg: #2b2b2b; /* 调亮输入框和结果框背景，增加层次感 */
+                --border-color: rgba(255, 255, 255, 0.1);
                 --accent: #2eaadc;
-                --green: #2ebd85; /* 夜间模式下使用更亮的绿色以保证对比度 */
-                --red: #ff7369;   /* 夜间模式下使用更亮的红色 */
-                --btn-active-bg: #2f2f2f;
+                --green: #2ebd85; 
+                --red: #ff7369;   
+                --btn-active-bg: #3b3b3b; /* 活跃按钮更亮一点 */
             }
         }
 
         * {
             box-sizing: border-box;
         }
+        
+        html, body {
+            background-color: transparent; 
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
         body {
             font-family: Lyon-Text, Georgia, ui-serif, Cambria, "Times New Roman", Times, serif;
             color: var(--text-color);
-            background-color: transparent; /* 保持透明以融入 Notion 背景 */
-            margin: 0;
             padding: 2px;
             font-size: 14px;
         }
+
         .container {
             width: 100%;
             background: var(--bg-color);
@@ -51,8 +61,9 @@
             border-radius: 6px;
             padding: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: background 0.3s, border-color 0.3s; /* 添加平滑过渡动画 */
+            transition: background 0.2s, border-color 0.2s; 
         }
+
         .tabs {
             display: flex;
             margin-bottom: 20px;
@@ -78,9 +89,10 @@
             display: flex;
             background: var(--gray-bg);
             border-radius: 6px;
-            padding: 3px;
-            margin-bottom: 16px;
+            padding: 4px;
+            margin-bottom: 18px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            border: 1px solid var(--border-color); /* 增加极细边框增强立体感 */
         }
         .toggle-btn {
             flex: 1;
@@ -134,6 +146,7 @@
             font-size: 15px;
             line-height: 1.6;
             transition: background 0.3s;
+            border: 1px solid var(--border-color); /* 增加细边框 */
         }
         .hidden { display: none; }
         .highlight { font-weight: 600; color: var(--red); }
@@ -159,7 +172,7 @@
             gap: 12px;
         }
         .rr-card {
-            background-color: transparent;
+            background-color: var(--gray-bg);
             border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 12px 6px;
