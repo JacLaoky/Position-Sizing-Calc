@@ -20,11 +20,11 @@
             color: var(--text-color);
             background-color: transparent;
             margin: 0;
-            padding: 2px; /* 给阴影留出一点空间 */
+            padding: 2px;
             font-size: 14px;
         }
         .container {
-            width: 100%; /* 占满 Notion embed 的全宽 */
+            width: 100%;
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -49,6 +49,33 @@
             border-bottom: 2px solid var(--text-color);
             color: var(--text-color);
         }
+        
+        /* Long/Short Toggle Button Styling */
+        .toggle-group {
+            display: flex;
+            background: var(--gray-bg);
+            border-radius: 6px;
+            padding: 3px;
+            margin-bottom: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+        .toggle-btn {
+            flex: 1;
+            text-align: center;
+            padding: 6px 0;
+            font-size: 13px;
+            cursor: pointer;
+            color: rgba(55, 53, 47, 0.65);
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .toggle-btn.active {
+            background: #fff;
+            color: var(--text-color);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+
         .input-group {
             margin-bottom: 14px;
             display: flex;
@@ -60,7 +87,7 @@
             font-size: 15px;
         }
         input {
-            width: 140px; /* 加宽了输入框 */
+            width: 140px;
             padding: 6px 10px;
             border: 1px solid transparent;
             background: var(--gray-bg);
@@ -87,6 +114,7 @@
         .hidden { display: none; }
         .highlight { font-weight: 600; color: #e03e3e; }
         .green { font-weight: 600; color: #0f7b6c; }
+        .red { font-weight: 600; color: #e03e3e; }
         
         /* R:R Targets Grid Styling */
         .rr-title {
@@ -103,7 +131,7 @@
         }
         .rr-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 改为 3 列排版 */
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
         }
         .rr-card {
@@ -158,6 +186,11 @@
     </div>
 
     <div id="swing-mode" class="hidden">
+        <div class="toggle-group">
+            <div class="toggle-btn active" id="btn-long" onclick="setDirection('long')">Long</div>
+            <div class="toggle-btn" id="btn-short" onclick="setDirection('short')">Short</div>
+        </div>
+
         <div class="input-group">
             <label>Capital ($)</label>
             <input type="number" id="s-cap" oninput="calcSwing()">
@@ -181,6 +214,8 @@
 </div>
 
 <script>
+    let swingDirection = 'long'; // Default to Long
+
     function switchTab(mode) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById('build-mode').classList.add('hidden');
@@ -193,6 +228,14 @@
             document.querySelectorAll('.tab')[1].classList.add('active');
             document.getElementById('swing-mode').classList.remove('hidden');
         }
+    }
+
+    function setDirection(dir) {
+        swingDirection = dir;
+        document.getElementById('btn-long').classList.remove('active');
+        document.getElementById('btn-short').classList.remove('active');
+        document.getElementById(`btn-${dir}`).classList.add('active');
+        calcSwing(); // Re-calculate automatically on switch
     }
 
     function calcBuild() {
@@ -225,18 +268,26 @@
 
         if (cap && riskPct && price && stop) {
             let maxRisk = cap * (riskPct / 100); 
-            let riskPerShare = price - stop;
+            
+            let riskPerShare = swingDirection === 'long' ? (price - stop) : (stop - price);
             
             if (riskPerShare <= 0) {
-                document.getElementById('s-result').innerHTML = "<span class='highlight'>Stop Loss must be below Entry Price!</span>";
+                let errorMsg = swingDirection === 'long' ? 
+                    "Stop Loss must be BELOW Entry Price!" : 
+                    "Stop Loss must be ABOVE Entry Price!";
+                document.getElementById('s-result').innerHTML = `<span class='highlight'>${errorMsg}</span>`;
                 return;
             }
 
             let shares = Math.floor(maxRisk / riskPerShare);
             let totalCost = shares * price;
             
+            let actionText = swingDirection === 'long' ? 
+                `Buy: <span class="green">${shares}</span> shares` : 
+                `Short: <span class="red">${shares}</span> shares`;
+                
             let html = `Max Risk: $${maxRisk.toFixed(2)} (${riskPct}%)<br>`;
-            html += `Buy: <span class="green">${shares}</span> shares ($${totalCost.toFixed(2)})<br>`;
+            html += `${actionText} ($${totalCost.toFixed(2)})<br>`;
             
             // R:R Targets Generation
             html += `<div class="rr-title">Take Profit Targets</div>`;
@@ -244,8 +295,11 @@
             
             const ratios = [1, 1.5, 2, 3, 4, 5];
             ratios.forEach(r => {
-                let targetPrice = price + (riskPerShare * r);
-                let profit = shares * (targetPrice - price); 
+                let targetPrice = swingDirection === 'long' ? 
+                    price + (riskPerShare * r) : 
+                    price - (riskPerShare * r);
+                
+                let profit = shares * Math.abs(targetPrice - price); 
                 
                 html += `
                     <div class="rr-card">
