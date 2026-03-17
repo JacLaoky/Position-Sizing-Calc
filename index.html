@@ -134,6 +134,7 @@
         .input-group label {
             color: var(--text-muted);
             font-size: 15px;
+            white-space: nowrap;
         }
         input {
             width: 140px;
@@ -156,14 +157,17 @@
         /* Multi-price input styling */
         .multi-input {
             display: flex; 
-            gap: 8px; 
+            gap: 6px; /* 缩小间距 */
             width: 100%;
             margin-top: 6px;
         }
         .multi-input input {
             flex: 1;
-            width: auto;
+            min-width: 0; /* 核心魔法：强制输入框允许缩小 */
+            width: 100%;
             text-align: center;
+            padding: 6px 4px; /* 减少水平内边距 */
+            font-size: 14px; /* 稍微缩小字号 */
         }
 
         .result-box {
@@ -244,9 +248,9 @@
         <div style="margin-bottom: 14px;">
             <label style="color: var(--text-muted); font-size: 15px;">Target Prices ($)</label>
             <div class="multi-input">
-                <input type="number" id="b-p1" placeholder="P1 (1x)" oninput="calcBuild()">
-                <input type="number" id="b-p2" placeholder="P2 (2x)" oninput="calcBuild()">
-                <input type="number" id="b-p3" placeholder="P3 (4x)" oninput="calcBuild()">
+                <input type="number" id="b-p1" placeholder="P1" oninput="calcBuild()">
+                <input type="number" id="b-p2" placeholder="P2" oninput="calcBuild()">
+                <input type="number" id="b-p3" placeholder="P3" oninput="calcBuild()">
             </div>
         </div>
         <div class="result-box" id="b-result">
@@ -320,7 +324,6 @@
             let b2 = totalBudget * (2/7);
             let b3 = totalBudget * (4/7);
 
-            // 精准判断用户是否输入了价格
             let hasP1 = !isNaN(p1);
             let hasP2 = !isNaN(p2);
             let hasP3 = !isNaN(p3);
@@ -331,7 +334,6 @@
             
             let html = `Total Budget: <b>$${totalBudget.toFixed(2)}</b><br>`;
             
-            // 只有当完全没有输入时才显示问号
             let disp1 = hasP1 ? s1 : '?';
             let disp2 = hasP2 ? s2 : '?';
             let disp3 = hasP3 ? s3 : '?';
@@ -342,7 +344,6 @@
             
             let totalShares = s1 + s2 + s3;
             if (totalShares > 0) {
-                // 确保只用有输入的部分来算均价
                 let actualCost = (hasP1 ? s1 * p1 : 0) + (hasP2 ? s2 * p2 : 0) + (hasP3 ? s3 * p3 : 0);
                 let avgPrice = actualCost / totalShares;
                 
@@ -350,7 +351,6 @@
                 html += `If all filled, Avg Price: <b>$${avgPrice.toFixed(2)}</b><br>`;
                 html += `Total Shares: <b>${totalShares}</b></div>`;
             } else if (hasP1 || hasP2 || hasP3) {
-                // 如果输入了高价但股数为 0 的防呆提示
                 html += `<div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-color); font-size:14px; color: var(--red);">`;
                 html += `Budget is too small to buy full shares at these prices.</div>`;
             }
