@@ -31,15 +31,15 @@
                 --text-color: rgba(255, 255, 255, 0.9);
                 --text-muted: rgba(255, 255, 255, 0.5);
                 --gray-bg: #202020; 
-                --input-bg: rgba(255, 255, 255, 0.08); /* 提亮输入框背景，防止隐形 */
-                --input-border: rgba(255, 255, 255, 0.15); /* 增加可见边框 */
+                --input-bg: rgba(255, 255, 255, 0.08); 
+                --input-border: rgba(255, 255, 255, 0.15); 
                 --border-color: rgba(255, 255, 255, 0.13); 
                 --accent: #2eaadc;
                 --green: #2ebd85; 
                 --red: #ff7369;   
                 --btn-long-bg: #2ebd85;
                 --btn-short-bg: #ff7369;
-                --btn-text: #191919; /* 暗色模式下，高亮按钮上的文字用深色更清晰 */
+                --btn-text: #191919; 
             }
         }
 
@@ -112,7 +112,6 @@
             transition: all 0.2s ease;
         }
         
-        /* 针对 Long 和 Short 分别设置高亮颜色 */
         #btn-long.active {
             background: var(--btn-long-bg);
             color: var(--btn-text);
@@ -153,6 +152,20 @@
             border: 1px solid var(--accent);
             background: var(--bg-color);
         }
+        
+        /* Multi-price input styling */
+        .multi-input {
+            display: flex; 
+            gap: 8px; 
+            width: 100%;
+            margin-top: 6px;
+        }
+        .multi-input input {
+            flex: 1;
+            width: auto;
+            text-align: center;
+        }
+
         .result-box {
             margin-top: 20px;
             padding: 16px;
@@ -225,15 +238,19 @@
             <input type="number" id="b-cap" oninput="calcBuild()">
         </div>
         <div class="input-group">
-            <label>Entry Price ($)</label>
-            <input type="number" id="b-price" oninput="calcBuild()">
-        </div>
-        <div class="input-group">
             <label>Target Pos (%)</label>
             <input type="number" id="b-pct" oninput="calcBuild()" placeholder="e.g. 10">
         </div>
+        <div style="margin-bottom: 14px;">
+            <label style="color: var(--text-muted); font-size: 15px;">Target Prices ($)</label>
+            <div class="multi-input">
+                <input type="number" id="b-p1" placeholder="P1 (1x)" oninput="calcBuild()">
+                <input type="number" id="b-p2" placeholder="P2 (2x)" oninput="calcBuild()">
+                <input type="number" id="b-p3" placeholder="P3 (4x)" oninput="calcBuild()">
+            </div>
+        </div>
         <div class="result-box" id="b-result">
-            Enter data to get scale-in plan...
+            Enter capital & position to get budget...
         </div>
     </div>
 
@@ -292,23 +309,42 @@
 
     function calcBuild() {
         let cap = parseFloat(document.getElementById('b-cap').value);
-        let price = parseFloat(document.getElementById('b-price').value);
         let pct = parseFloat(document.getElementById('b-pct').value);
+        let p1 = parseFloat(document.getElementById('b-p1').value);
+        let p2 = parseFloat(document.getElementById('b-p2').value);
+        let p3 = parseFloat(document.getElementById('b-p3').value);
 
-        if (cap && price && pct) {
-            let totalShares = Math.floor((cap * (pct / 100)) / price);
-            let b1 = Math.floor(totalShares * (1/7));
-            let b2 = Math.floor(totalShares * (2/7));
-            let b3 = Math.floor(totalShares * (4/7));
+        if (cap && pct) {
+            let totalBudget = cap * (pct / 100);
+            let b1 = totalBudget * (1/7);
+            let b2 = totalBudget * (2/7);
+            let b3 = totalBudget * (4/7);
+
+            // 如果有价格，计算股数，如果没有，只显示占位符
+            let s1 = p1 ? Math.floor(b1 / p1) : 0;
+            let s2 = p2 ? Math.floor(b2 / p2) : 0;
+            let s3 = p3 ? Math.floor(b3 / p3) : 0;
             
-            document.getElementById('b-result').innerHTML = `
-                Total: <b>${totalShares} shares</b> ($${(totalShares*price).toFixed(2)})<br>
-                1️⃣ Batch 1 (1/7): <span class="green">${b1}</span> shares<br>
-                2️⃣ Batch 2 (2/7): <span class="green">${b2}</span> shares<br>
-                3️⃣ Batch 3 (4/7): <span class="green">${b3}</span> shares
-            `;
+            let html = `Total Budget: <b>$${totalBudget.toFixed(2)}</b><br>`;
+            
+            html += `1️⃣ P1: <span class="green">${s1 || '?'}</span> shares (Budget: $${b1.toFixed(0)})<br>`;
+            html += `2️⃣ P2: <span class="green">${s2 || '?'}</span> shares (Budget: $${b2.toFixed(0)})<br>`;
+            html += `3️⃣ P3: <span class="green">${s3 || '?'}</span> shares (Budget: $${b3.toFixed(0)})<br>`;
+            
+            // 计算全部成交后的综合均价
+            let totalShares = s1 + s2 + s3;
+            if (totalShares > 0) {
+                let actualCost = (s1 * p1 || 0) + (s2 * p2 || 0) + (s3 * p3 || 0);
+                let avgPrice = actualCost / totalShares;
+                
+                html += `<div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-color); font-size:14px;">`;
+                html += `If all filled, Avg Price: <b>$${avgPrice.toFixed(2)}</b><br>`;
+                html += `Total Shares: <b>${totalShares}</b></div>`;
+            }
+
+            document.getElementById('b-result').innerHTML = html;
         } else {
-            document.getElementById('b-result').innerHTML = "Enter data to get scale-in plan...";
+            document.getElementById('b-result').innerHTML = "Enter capital & position to get budget...";
         }
     }
 
